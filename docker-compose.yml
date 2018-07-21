@@ -1,0 +1,16 @@
+version: '3.0'
+services:
+  jenkins:
+    build:
+      context: .
+      args:
+        docker_gid: 999
+    image: jenkins-docker
+    ports:
+      - 80:8080
+      - 50000:50000
+    volumes:
+      - jenkins_data:/var/jenkins_home
+      - /var/run/docker.sock:/var/run/docker.sock
+volumes:
+  jenkins_data:
