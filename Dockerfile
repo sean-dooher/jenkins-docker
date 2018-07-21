@@ -4,6 +4,7 @@ ARG docker_gid=999
 USER root
 
 RUN groupadd docker -g $docker_gid
+RUN usermod -aG docker jenkins
 
 RUN apt-get update \
      && apt-get install -y \
