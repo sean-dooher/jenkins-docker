@@ -1,0 +1,28 @@
+version: '3.0'
+services:
+  nginx:
+    image: nginx:latest
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/production.conf.template:/nginx.conf.template
+      - /docker-volumes/etc/letsencrypt/live/${JENKINS_HOST}/fullchain.pem:/etc/letsencrypt/live/${JENKINS_HOST}/fullchain.pem
+      - /docker-volumes/etc/letsencrypt/live/${JENKINS_HOST}/privkey.pem:/etc/letsencrypt/live/${JENKINS_HOST}/privkey.pem
+      - ./nginx/run_nginx.sh:/run_nginx.sh
+    command: bash /run_nginx.sh
+    environment:
+      - JENKINS_HOST
+  jenkins:
+    build:
+      context: .
+      args:
+        docker_gid: 999
+    image: jenkins-docker
+    expose:
+     - 8080
+    volumes:
+      - jenkins_data:/var/jenkins_home
+      - /var/run/docker.sock:/var/run/docker.sock
+volumes:
+  jenkins_data:

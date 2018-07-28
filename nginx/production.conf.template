@@ -1,0 +1,90 @@
+upstream jenkinserver {
+  # fail_timeout=0 means we always retry an upstream even if it failed
+  # to return a good HTTP response (in case the Unicorn master nukes a
+  # single worker for timing out).
+  ip_hash;
+  server jenkins:8080;
+}
+
+server {
+    listen      80;
+    listen [::]:80;
+    server_name ${JENKINS_HOST} www.${JENKINS_HOST};
+
+    location / {
+        rewrite ^ https://$host$request_uri? permanent;
+    }
+
+    #for certbot challenges (renewal process)
+    location ~ /.well-known/acme-challenge {
+        allow all;
+        root /data/letsencrypt;
+    }
+}
+
+server {
+    listen 443 ssl http2;
+    listen [::]:443 ssl http2;
+    server_name www.${JENKINS_HOST};
+
+    server_tokens off;
+
+    ssl_certificate /etc/letsencrypt/live/${JENKINS_HOST}/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/${JENKINS_HOST}/privkey.pem;
+
+    ssl_buffer_size 8k;
+
+    ssl_protocols TLSv1.2 TLSv1.1 TLSv1;
+    ssl_prefer_server_ciphers on;
+
+    ssl_ciphers ECDH+AESGCM:ECDH+AES256:ECDH+AES128:DH+3DES:!ADH:!AECDH:!MD5;
+
+    ssl_ecdh_curve secp384r1;
+    ssl_session_tickets off;
+
+    # OCSP stapling
+    ssl_stapling on;
+    ssl_stapling_verify on;
+    resolver 8.8.8.8;
+
+    return 301 https://${JENKINS_HOST}$request_uri;
+}
+
+server {
+    server_name ${JENKINS_HOST};
+    listen 443 ssl http2;
+    listen [::]:443 ssl http2;
+
+    server_tokens off;
+
+    ssl_buffer_size 8k;
+
+    ssl_protocols TLSv1.2 TLSv1.1 TLSv1;
+    ssl_prefer_server_ciphers on;
+    ssl_ciphers ECDH+AESGCM:ECDH+AES256:ECDH+AES128:DH+3DES:!ADH:!AECDH:!MD5;
+
+    ssl_ecdh_curve secp384r1;
+    ssl_session_tickets off;
+
+    # OCSP stapling
+    ssl_stapling on;
+    ssl_stapling_verify on;
+    resolver 8.8.8.8 8.8.4.4;
+
+    ssl_certificate /etc/letsencrypt/live/${JENKINS_HOST}/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/${JENKINS_HOST}/privkey.pem;
+
+    location / {
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto https;
+        proxy_set_header Host $http_host;
+        proxy_redirect off;
+        proxy_buffering off;
+
+        if (!-f $request_filename) {
+            proxy_pass http://jenkins:8080;
+            break;
+        }
+        expires 30d;
+    }
+}
