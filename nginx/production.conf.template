@@ -85,6 +85,5 @@ server {
             proxy_pass http://jenkins:8080;
             break;
         }
-        expires 30d;
     }
 }
