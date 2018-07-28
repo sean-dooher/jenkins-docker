@@ -1,0 +1,18 @@
+[Unit]
+Description=Jenkins CI server through docker-compose
+Requires=docker.service
+After=docker.service
+
+[Service]
+Environment="JENKINS_HOST=$JENKINS_HOST"
+Restart=always
+User=sean
+WorkingDirectory=/jenkins
+# Compose up
+ExecStart=$DOCKER_COMPOSE -f production-compose.yml up
+
+# Compose down
+ExecStop=$DOCKER_COMPOSE -f production-compose.yml down
+
+[Install]
+WantedBy=multi-user.target
