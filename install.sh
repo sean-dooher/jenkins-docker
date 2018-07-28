@@ -12,14 +12,12 @@ if [ -z "$USER_EMAIL" ]; then
 	export USER_EMAIL
 fi
 
-mkdir -p /letsencrypt-site
-
 docker-compose -f initial-compose.yml up -d
 
 docker run -it --rm \
 -v /docker-volumes/etc/letsencrypt:/etc/letsencrypt \
 -v /docker-volumes/var/lib/letsencrypt:/var/lib/letsencrypt \
--v /letsencrypt-site:/data/letsencrypt \
+-v /docker-volumes/data/letsencrypt:/usr/share/nginx/html \
 -v "/docker-volumes/var/log/letsencrypt:/var/log/letsencrypt" \
 certbot/certbot \
 certonly --webroot \
