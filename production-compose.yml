@@ -10,6 +10,7 @@ services:
       - ./nginx/production.conf.template:/nginx.conf.template
       - /docker-volumes/etc/letsencrypt/live/${JENKINS_HOST}/fullchain.pem:/etc/letsencrypt/live/${JENKINS_HOST}/fullchain.pem
       - /docker-volumes/etc/letsencrypt/live/${JENKINS_HOST}/privkey.pem:/etc/letsencrypt/live/${JENKINS_HOST}/privkey.pem
+      - /docker-volumes/data/letsencrypt:/usr/share/nginx/html
     command: /bin/bash -c "envsubst '$$JENKINS_HOST' < /nginx.conf.template > /etc/nginx/conf.d/default.conf && nginx -g 'daemon off;'"
     environment:
       - JENKINS_HOST
