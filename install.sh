@@ -29,6 +29,7 @@ docker-compose -f initial-compose.yml down
 
 export DOCKER_COMPOSE=$(which docker-compose)
 envsubst < jenkins.service.template > /etc/systemd/system/jenkins.service
+ln -s /var/lib/docker/volumes/jenkins_jenkins_data/_data/ /var/jenkins_home
 systemctl enable jenkins
 systemctl start jenkins
 (crontab -l 2>/dev/null; echo '0 23 * * * docker run --rm -it --name certbot -v "/docker-volumes/etc/letsencrypt:/etc/letsencrypt" -v "/docker-volumes/var/lib/letsencrypt:/var/lib/letsencrypt" -v "/docker-volumes/data/letsencrypt:/data/letsencrypt" -v "/docker-volumes/var/log/letsencrypt:/var/log/letsencrypt" certbot/certbot renew --webroot -w /data/letsencrypt --quiet && docker kill --signal=HUP jenkins-nginx') | crontab -
